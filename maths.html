@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Simple maths quiz to teach Basic Facts at primary school level">
+    <meta name="author" content="Steve Pavarno: www.unicycle.co.nz">
+    <title>Maths Game</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <style>
+        body {
+            background-color: #f0f0f0;
+        }
+        .bordered {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .answers-box {
+            margin-top: 20px;
+        }
+        .answer {
+            float: left;
+            width: 8em;
+            border: 1px solid #ddd;
+            padding: 5px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        .right {
+            border-color: #5cb85c;
+            color: #5cb85c;
+            background-color: #DBFFDB;
+        }
+        .wrong {
+            border-color: #d9534f;
+            color: #d9534f;
+            background-color: #FFD2CE;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <h1>Maths Game</h1>
+    <form class="form-inline" role="form">
+        <p>
+            <label for="minutes">Minutes</label>
+            <select id="minutes" name="minutes">
+                <option>2</option>
+                <option selected>3</option>
+                <option>5</option>
+            </select>
+            <label for="questions">Questions</label>
+            <select id="questions" name="questions">
+                <option>10</option>
+                <option>50</option>
+                <option selected>100</option>
+                <option>200</option>
+            </select>
+            <label for="left_range">Difficulty</label>
+            <select id="left_range" name="left_range">
+                <option value="1">0 to 1</option>
+                <option value="2">0 to 2</option>
+                <option value="3">0 to 3</option>
+                <option value="4">0 to 4</option>
+                <option value="5" selected>0 to 5</option>
+                <option value="6">0 to 6</option>
+                <option value="7">0 to 7</option>
+                <option value="8">0 to 8</option>
+                <option value="9">0 to 9</option>
+                <option value="10">0 to 10</option>
+                <option value="11">0 to 11</option>
+                <option value="12">0 to 12</option>
+                <option value="20">0 to 20</option>
+                <option value="50">0 to 50</option>
+                <option value="100">0 to 100</option>
+            </select>
+            <select id="operator_type" name="operator_type">
+                <option selected>+</option>
+                <option>-</option>
+                <option>x</option>
+                <option>&#247;</option>
+            </select>
+            <select id="right_range" name="right_range">
+                <option value="1">0 to 1</option>
+                <option value="2">0 to 2</option>
+                <option value="3">0 to 3</option>
+                <option value="4">0 to 4</option>
+                <option value="5" selected>0 to 5</option>
+                <option value="6">0 to 6</option>
+                <option value="7">0 to 7</option>
+                <option value="8">0 to 8</option>
+                <option value="9">0 to 9</option>
+                <option value="10">0 to 10</option>
+                <option value="11">0 to 11</option>
+                <option value="12">0 to 12</option>
+                <option value="20">0 to 20</option>
+                <option value="50">0 to 50</option>
+                <option value="100">0 to 100</option>
+            </select>
+        </p>
+        <div class="bordered">
+            <p class="text-center clearfix lead">
+                <label for="answer"><span id="left">99</span>
+                <span id="operator_value">+</span>
+                <span id="right">99</span> = </label>
+                <input type="text" id="answer" size="5" width="7" autofocus class="form-control input-lg" title="Type your answer here and press the Enter key on your keyboard">
+                <span class="pull-right">
+                    <button type="button" id="start" class="btn btn-success btn-lg">Start</button>
+                    <button type="button" id="stop" class="btn btn-danger btn-lg" disabled>Stop</button>
+                </span>
+            </p>
+
+            <div>Time <span id="seconds_remaining_text"></span>
+                <div class="progress" title="Fills up as time passes">
+                    <div class="progress-bar" id="seconds_remaining_bar" role="progressbar">
+                    </div>
+                </div>
+            </div>
+            <div>Questions Asked <span id="questions_asked_text"></span>
+                <div class="progress" title="Fills up as you answer each question">
+                    <div class="progress-bar" id="questions_asked_bar" role="progressbar">
+                    </div>
+                </div>
+            </div>
+            <div>Correct Answers <span id="questions_correct_text"></span>
+                <div class="progress" title="Fills up for each correct answer you make">
+                    <div class="progress-bar progress-bar-success" id="questions_correct_bar" role="progressbar">
+                    </div>
+                </div>
+            </div>
+            <p>
+            </p>
+        </div>
+    </form>
+</div>
+<p></p>
+<div class="container-fluid answers-box">
+    <p>Your answers</p>
+    <div class="bordered clearfix" id="answers">
+    </div>
+</div>
+<div class="container-fluid answers-box" id="completed_image">
+</div>
+<!-- /.container -->
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+<script>
+    var quiz = {
+        timeoutID: 0, // from setTimeout()
+        secondsAllowed: 0,
+        secondsRemaining: 0,
+        questionsAsked: 0,
+        questionsCorrect: 0,
+        questionsAllowed: 0,
+        leftRange: 10,
+        rightRange: 10,
+        operator: '+',
+
+        getLeftRange: function() {
+            return parseInt(jQuery("#left_range option:selected").val());
+        },
+
+        getRightRange: function() {
+            return parseInt(jQuery("#right_range option:selected").val());
+        },
+
+        getOperator: function() {
+            return jQuery("#operator_type option:selected").val();
+        },
+
+        start: function () {
+            jQuery('#start').attr('disabled', 'disabled');
+            jQuery('#stop').removeAttr('disabled');
+
+            if (quiz.secondsRemaining > 0) return;
+
+            quiz.secondsAllowed = parseInt(jQuery("#minutes option:selected").val()) * 60;
+            quiz.questionsAllowed = parseInt(jQuery("#questions option:selected").val());
+            quiz.leftRange = quiz.getLeftRange();
+            quiz.rightRange = quiz.getRightRange();
+            quiz.operator = quiz.getOperator();
+            quiz.secondsRemaining = quiz.secondsAllowed + 1;
+            quiz.questionsCorrect = 0;
+            quiz.questionsAsked = 0;
+            quiz.hideImage();
+            quiz.clearAnswers();
+            quiz.askQuestion();
+            quiz.tick();
+        },
+
+        tick: function() {
+            console.log( 'tick', quiz.secondsRemaining );
+            if (quiz.secondsRemaining <= 0) {
+                quiz.timeoutID = 0;
+                quiz.displaySecondsRemaining(0);
+                return;
+            }
+            quiz.secondsRemaining--;
+            quiz.displaySecondsRemaining(quiz.secondsRemaining);
+            quiz.timeoutID = window.setTimeout(quiz.tick, 1000);
+        },
+
+        stop: function() {
+            quiz.displayQuestionsAsked();
+            quiz.displayQuestionsCorrect();
+            quiz.secondsRemaining = 0;
+            quiz.questionsAllowed = 0;
+            if (quiz.timeoutID) {
+                window.clearTimeout(this.timeoutID);
+                quiz.timeoutID = 0;
+            }
+            jQuery('#right').text('_');
+            jQuery('#left').text('_');
+            jQuery('#start').removeAttr('disabled');
+            jQuery('#stop').attr('disabled', 'disabled');
+            quiz.showImage();
+        },
+
+        displaySecondsRemaining: function(seconds) {
+            seconds = Math.min(seconds, quiz.secondsAllowed);
+            if (seconds <= 0) {
+                jQuery('#seconds_remaining_bar').css('width', 0);
+                jQuery('#seconds_remaining_text').text('');
+            } else {
+                jQuery('#seconds_remaining_bar').css('width', (quiz.secondsAllowed - seconds) / quiz.secondsAllowed * 100 + '%');
+                jQuery('#seconds_remaining_text').text(Math.floor(seconds / 60) + ' minutes ' + (seconds % 60) + ' seconds left');
+            }
+        },
+
+        displayQuestionsAsked: function() {
+            if (quiz.questionsAsked <= 0) {
+                jQuery('#questions_asked_bar').css('width', 0);
+                jQuery('#questions_asked_text').text('');
+            } else if (quiz.questionsAllowed <= 0) {
+                // using it without the timer
+                jQuery('#questions_asked_bar').css('width', '100%');
+                jQuery('#questions_asked_text').text(quiz.questionsAsked);
+            } else {
+                jQuery('#questions_asked_bar').css('width', Math.min(quiz.questionsAsked,quiz.questionsAllowed) / quiz.questionsAllowed * 100 + '%');
+                jQuery('#questions_asked_text').text(quiz.questionsAsked);
+            }
+        },
+
+        displayQuestionsCorrect: function() {
+            if (quiz.questionsCorrect <= 0) {
+                jQuery('#questions_correct_bar').css('width', 0);
+                jQuery('#questions_correct_text').text('');
+            } else if (quiz.questionsAllowed <= 0) {
+                // using it without the timer
+                jQuery('#questions_correct_bar').css('width', quiz.questionsCorrect / quiz.questionsAsked * 100 + '%');
+                jQuery('#questions_correct_text').text(quiz.questionsCorrect + " out of " + quiz.questionsAsked);
+            } else {
+                jQuery('#questions_correct_bar').css('width', quiz.questionsCorrect / quiz.questionsAllowed * 100 + '%');
+                jQuery('#questions_correct_text').text(quiz.questionsCorrect + " out of " + quiz.questionsAsked);
+            }
+        },
+
+        askQuestion: function() {
+            if (quiz.questionsAsked >= quiz.questionsAllowed && quiz.timeoutID) {
+                // if we are in timed mode, stop the timer
+                quiz.stop();
+                return;
+            }
+            quiz.questionsAsked++;
+            var left = Math.floor(Math.random() * quiz.leftRange);
+            var right = Math.floor(Math.random() * quiz.rightRange);
+            jQuery('#answer').focus();
+            jQuery('#right').text(left);
+            jQuery('#left').text(right);
+            quiz.displayQuestionsAsked();
+            quiz.displayQuestionsCorrect();
+        },
+
+        checkAnswer: function(answer) {
+            var right = parseInt(jQuery('#right').text());
+            var left = parseInt(jQuery('#left').text());
+            var correct = 0;
+            switch (quiz.operator) {
+                case '+': correct =left + right; break;
+                case '-': correct =left - right; break;
+                case 'x': correct =left * right; break;
+                default: correct =Math.floor(left / right); break;
+            }
+            var text = left + quiz.operator + right + '=' + answer;
+            if (answer == correct) {
+                quiz.addCorrectAnswer(text);
+            } else {
+                quiz.addWrongAnswer(text);
+            }
+            quiz.askQuestion();
+        },
+
+        clearAnswers: function() {
+            jQuery('#answers').text('');
+        },
+
+        addCorrectAnswer: function(text) {
+            quiz.questionsCorrect++;
+            jQuery('#answers').append('<div class="answer right">' + text + ' <span class="glyphicon glyphicon-ok"></span></div>');
+        },
+
+        addWrongAnswer: function(text) {
+            jQuery('#answers').append('<div class="answer wrong">' + text + ' <span class="glyphicon glyphicon-remove"></span></div>');
+        },
+
+        keyPress: function(event) {
+            if ( event.which == 13 ) {
+                // enter key lets us check the answer
+                quiz.checkAnswer(parseInt(jQuery('#answer').val()));
+                jQuery('#answer').val('');
+                event.preventDefault();
+                return false;
+            }
+            if (event.which == 8 || event.which == 46) {
+                // allow backspace
+                return true;
+            }
+            if (event.which == 45) {
+                // allow minus sign
+                return true;
+            }
+            if (event.which < 48 || event.which > 57) {
+                // discard non-digits
+                event.preventDefault();
+                return false;
+            }
+        },
+
+        hideImage: function() {
+            jQuery('#completed_image').html('');
+        },
+
+        showImage: function() {
+            jQuery('#completed_image').html('<div class="bordered"><h1>Well done!</h1><p>Here is a random cat to brighten your day</p><img src="http://thecatapi.com/api/images/get?format=src&time=' + Date.now() + '" style="max-width:100%"></div>');
+        }
+    };
+
+    function setLeftRange() {
+        var value = quiz.getLeftRange();
+        quiz.leftRange = value;
+        jQuery('#left').text(value);
+    }
+
+    function setRightRange() {
+        var value = quiz.getRightRange();
+        quiz.rightRange = value;
+        jQuery('#right').text(value);
+    }
+
+    function setOperator() {
+        var value = quiz.getOperator();
+        quiz.operator = value;
+        jQuery('#operator_value').text(value);
+    }
+
+//    quiz.hideImage();
+    jQuery('#start').click(quiz.start);
+    jQuery('#stop').click(quiz.stop);
+    jQuery('#left_range').change( setLeftRange );
+    jQuery('#operator_type').change( setOperator );
+    jQuery('#right_range').change( setRightRange );
+    jQuery('#answer').keypress(quiz.keyPress);
+
+    // set default values on startup
+    setLeftRange();
+    setRightRange();
+    setOperator();
+</script>
+</body>
+</html>
