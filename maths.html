@@ -268,8 +268,8 @@
                 return;
             }
             quiz.questionsAsked++;
-            var left = Math.floor(Math.random() * quiz.leftRange);
-            var right = Math.floor(Math.random() * quiz.rightRange);
+            var left = Math.floor(Math.random() * (quiz.leftRange + 1));
+            var right = Math.floor(Math.random() * (quiz.rightRange + 1));
             jQuery('#answer').focus();
             jQuery('#right').text(left);
             jQuery('#left').text(right);
@@ -285,8 +285,9 @@
                 case '+': correct =left + right; break;
                 case '-': correct =left - right; break;
                 case 'x': correct =left * right; break;
-                default: correct =Math.floor(left / right); break;
+                default: if (right > 0) correct = Math.floor(left / right); else correct = 0; break;
             }
+            if (isNaN(answer)) answer = '?';
             var text = left + quiz.operator + right + '=' + answer;
             if (answer == correct) {
                 quiz.addCorrectAnswer(text);
@@ -359,7 +360,7 @@
         jQuery('#operator_value').text(value);
     }
 
-//    quiz.hideImage();
+    quiz.hideImage();
     jQuery('#start').click(quiz.start);
     jQuery('#stop').click(quiz.stop);
     jQuery('#left_range').change( setLeftRange );
