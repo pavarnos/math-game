@@ -145,6 +145,9 @@
 </div>
 <div class="container-fluid answers-box" id="completed_image">
 </div>
+<div class="container-fluid">
+    <p>Sponsored by <a href="http://www.unicycle.co.nz">Unicycle.com NZ</a>. Purveyors of fine unicycles.</p>
+</div>
 <!-- /.container -->
 
 
@@ -313,7 +316,10 @@
         keyPress: function(event) {
             if ( event.which == 13 ) {
                 // enter key lets us check the answer
-                quiz.checkAnswer(parseInt(jQuery('#answer').val()));
+                var value = jQuery('#answer').val();
+                if (value != '') {
+                    quiz.checkAnswer(parseInt(value));
+                }
                 jQuery('#answer').val('');
                 event.preventDefault();
                 return false;
